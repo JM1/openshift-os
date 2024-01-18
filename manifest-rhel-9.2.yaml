@@ -22,6 +22,12 @@ repos:
   - rhel-9.2-appstream
   - rhel-9.2-fast-datapath
   - rhel-9.2-server-ose-4.16
+  # NetworkManager* such as NetworkManager
+  - c9s-baseos-ovs-dpdk
+  # NetworkManager* such as NetworkManager-ovs
+  - c9s-appstream-ovs-dpdk
+  # openvswitch3.2
+  - sig-nfv
 
 # We include hours/minutes to avoid version number reuse
 automatic-version-prefix: "416.92.<date:%Y%m%d%H%M>"
