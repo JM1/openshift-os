@@ -66,8 +66,64 @@ packages:
   - ose-aws-ecr-image-credential-provider
   - ose-azure-acr-image-credential-provider
   - ose-gcp-gcr-image-credential-provider
+  # Tools for debugging
+  - openvswitch3.5-test
+  - openvswitch3.5-debuginfo
+  - openvswitch3.5-debugsource
+  - gdb
+  - perf
+  - kernel-devel
+  - kernel-tools
+  - kernel-headers
+  - tcpdump
+  - dpdk # dpdk-testpmd
+  - dpdk-tools # dpdk-devbind.py
 
 postprocess:
+  # Install *-debuginfo packages for debugging from debug repositories
+  - |
+    #!/usr/bin/bash
+    set -euxo pipefail
+
+    # Poor man's "dnf config-manager --enable rhel-9-for-x86_64-baseos-debug-rpms"
+    # because we do not have a valid subscription when building the image.
+    awk '
+        /^\[.*\]/ {
+            # repo ID line: append -debug
+            sub(/\]/,"-debug]")
+            print
+            next
+        }
+        /^name=/ {
+            # name line: append -debug
+            print $0 "-debug"
+            next
+        }
+        /^baseurl=/ {
+            # replace os/ or os at end → debug/
+            gsub("/os/","/debug/")
+            gsub("/os$","/debug/")
+            print
+            next
+        }
+        /^enabled=/ {
+            # disable all repos
+            print "enabled=0"
+            next
+        }
+        { print }
+    ' /etc/yum.repos.d/secret.repo > /etc/yum.repos.d/secret-debug.repo
+
+    rhel_version=$(grep -oP '^VERSION="\K[0-9]+\.[0-9]+' /etc/os-release)
+
+    # Enable only the debug repository, since some YUM repositories may be inaccessible
+    # and the treefile's repos parameter does not affect dnf calls.
+    dnf install -y \
+        --disablerepo=* \
+        "--enablerepo=rhel-${rhel_version}-baseos-debug" \
+            kernel-debuginfo # for debugging only
+
+    rm /etc/yum.repos.d/secret-debug.repo
   # This is part of e.g. fedora-repos in Fedora; we now want to include it by default
   # so that the MCO can use it by default and not trip over SELinux issues trying
   # to create it.
