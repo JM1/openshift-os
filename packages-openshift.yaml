@@ -59,6 +59,10 @@ packages:
   - cri-o cri-tools conmon-rs
   - openshift-clients openshift-kubelet
   - openvswitch3.5
+  - openvswitch3.5-test # for debugging only
+  - tcpdump # for debugging only
+  - dpdk #  # for development only, in particular with dpdk-testpmd
+  - dpdk-tools # for development only, in particular with dpdk-devbind.py
   - driverctl
   # The packages below are present in CentOS Stream/RHEL,
   # and depend on one or more of the above.
