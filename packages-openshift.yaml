@@ -121,7 +121,7 @@ postprocess:
     dnf install -y \
         --disablerepo=* \
         "--enablerepo=rhel-${rhel_version}-baseos-debug" \
-            kernel-debuginfo # for debugging only
+            kernel-debuginfo kernel-rt-debuginfo # for debugging only
 
     rm /etc/yum.repos.d/secret-debug.repo
   # This is part of e.g. fedora-repos in Fedora; we now want to include it by default
