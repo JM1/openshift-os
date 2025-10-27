@@ -116,11 +116,28 @@ postprocess:
 
     rhel_version=$(grep -oP '^VERSION="\K[0-9]+\.[0-9]+' /etc/os-release)
 
+    # Enable additional YUM repositories
+    # The YUM repositories will be monkey patched by the build.sh script.
+    # Ref.: https://gitlab.cee.redhat.com/jmeng/ovs-ci-with-ocp/-/blob/main/build.sh
+    dnf_install_args=()
+    for yum_repo in OVS_CI_WITH_OCP_REPO_LIST_MARKER; do
+        case "$yum_repo" in
+        "OVS_CI_WITH_OCP_"*)
+            # Skip if this marker has not been monkey patched by build.sh
+            break
+            ;;
+        *)
+            dnf_install_args+=("--enablerepo=$yum_repo")
+            ;;
+        esac
+    done
+
     # Enable only the debug repository, since some YUM repositories may be inaccessible
     # and the treefile's repos parameter does not affect dnf calls.
     dnf install -y \
         --disablerepo=* \
         "--enablerepo=rhel-${rhel_version}-baseos-debug" \
+        "${dnf_install_args[@]}" \
             kernel-debuginfo kernel-rt-debuginfo # for debugging only
 
     rm /etc/yum.repos.d/secret-debug.repo
